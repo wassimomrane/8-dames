@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu des 8 Dames</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        #echiquier {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+            gap: 2px;
+        }
+        .case {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .noir { background-color: #555; color: white; }
+        .blanc { background-color: #ddd; color: black; }
+        #message {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+            display: none; /* Masqué par défaut */
+        }
+        #actions {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jeu des 8 Dames</h1>
+    <div id="echiquier"></div>
+    <div id="message">Échec ! Aucun placement possible.</div>
+    <div id="actions">
+        <button id="retour">Retour</button>
+        <button id="restart">Recommencer</button>
+    </div>
+
+    <script>
+        const echiquier = document.getElementById("echiquier");
+        const message = document.getElementById("message");
+        const retourButton = document.getElementById("retour");
+        const restartButton = document.getElementById("restart");
+        let dames = [];
+
+        function initialiserEchiquier() {
+            echiquier.innerHTML = "";
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const caseElement = document.createElement("div");
+                    caseElement.classList.add("case", (i + j) % 2 === 0 ? "blanc" : "noir");
+                    caseElement.dataset.ligne = i;
+                    caseElement.dataset.colonne = j;
+                    caseElement.addEventListener("click", placerDame);
+                    echiquier.appendChild(caseElement);
+                }
+            }
+            dames = [];
+            message.style.display = "none";
+        }
+
+        function estValide(ligne, colonne) {
+            for (const [dameLigne, dameColonne] of dames) {
+                if (
+                    dameLigne === ligne || 
+                    dameColonne === colonne || 
+                    Math.abs(dameLigne - ligne) === Math.abs(dameColonne - colonne)
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function placerDame(event) {
+            const ligne = parseInt(event.target.dataset.ligne);
+            const colonne = parseInt(event.target.dataset.colonne);
+
+            if (!estValide(ligne, colonne)) {
+                message.innerText = "Position invalide. Une dame peut attaquer cette position.";
+                message.style.display = "block";
+                return;
+            }
+
+            event.target.textContent = "♛";
+            dames.push([ligne, colonne]);
+            message.style.display = "none"; // Masquer le message d'erreur
+
+            if (dames.length === 8) {
+                message.innerText = "Bravo ! Vous avez placé les 8 dames sans conflit.";
+                message.style.color = "green";
+                message.style.display = "block";
+            } else if (!peutPlacer()) {
+                message.innerText = "Échec ! Aucun placement possible.";
+                message.style.color = "red";
+                message.style.display = "block";
+            }
+        }
+
+        function peutPlacer() {
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    if (echiquier.children[i * 8 + j].textContent === "" && estValide(i, j)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function retirerDerniereDame() {
+            if (dames.length > 0) {
+                const [ligne, colonne] = dames.pop();
+                const caseElement = echiquier.querySelector(`[data-ligne="${ligne}"][data-colonne="${colonne}"]`);
+                caseElement.textContent = "";
+                message.style.display = "none"; // Masquer le message d'erreur ou de succès
+            } else {
+                message.innerText = "Aucune dame à retirer.";
+                message.style.color = "red";
+                message.style.display = "block";
+            }
+        }
+
+        retourButton.addEventListener("click", retirerDerniereDame);
+        restartButton.addEventListener("click", initialiserEchiquier);
+
+        initialiserEchiquier();
+    </script>
+    <p>© 2024 Jeu de 8 dames | by wassim omrane</p>
+</body>
+</html>
